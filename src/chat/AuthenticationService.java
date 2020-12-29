@@ -1,48 +1,83 @@
 package chat;
 
-import java.util.Set;
+import chat.database.ConnectionService;
+import java.sql.*;
+import java.util.Objects;
+
 
 public class AuthenticationService {
-    private Set<CredentialsEntry> entries;
 
-    public AuthenticationService() {
-        entries = Set.of(
-                new CredentialsEntry("Nick1", "l1", "p1"),
-                new CredentialsEntry("Nick2", "l2", "p2"),
-                new CredentialsEntry("Nick3", "l3", "p3")
-        );
-    }
+    protected String findNicknameByLoginAndPassword(String login, String password) {
+        Objects.requireNonNull(login, "Login can't be null");
+        Objects.requireNonNull(password, "Password can't be null");
 
-    public String findNicknameByLoginAndPassword(String login, String password) {
-        for (CredentialsEntry entry : entries) {
-            if (entry.getLogin().equals(login) && entry.getPassword().equals(password)) {
-                return entry.getNickname();
+        if (login.isBlank()) {
+            throw new IllegalArgumentException("Login can't be empty or null");
+        }
+        if (password.isBlank()) {
+            throw new IllegalArgumentException("Password can't be empty or null");
+        }
+
+        Connection connection = ConnectionService.connect();
+        try {
+            PreparedStatement statement = connection.prepareStatement("SELECT * FROM users WHERE login = ? AND password = ?");
+            statement.setString(1, login);
+            statement.setString(2, password);
+            ResultSet rs = statement.executeQuery();
+            if(rs.next()) {
+                if((rs.getString("login")).equals(login) && (rs.getString("password")).equals(password)) {
+                    return rs.getString("nickname");
+                }
             }
+        } catch (SQLException throwables) {
+            throw new RuntimeException("SWW", throwables);
+        } finally {
+            ConnectionService.close(connection);
         }
         return null;
     }
 
-    public static class CredentialsEntry {
-        private String nickname;
-        private String login;
-        private String password;
+    public String changeNickname(String nickname,String login) {
+        Objects.requireNonNull(nickname, "Nickname can't be null");
+        Objects.requireNonNull(login, "Login can't be null");
 
-        public CredentialsEntry(String nickname, String login, String password) {
-            this.nickname = nickname;
-            this.login = login;
-            this.password = password;
+        Connection connection = ConnectionService.connect();
+        try {
+            connection.setAutoCommit(false);
+            PreparedStatement statement = connection.prepareStatement("UPDATE users SET nickname = ? WHERE login = ?");
+            statement.setString(1, nickname);
+            statement.setString(2, login);
+            statement.executeUpdate();
+            connection.commit();
+        } catch (SQLException throwables) {
+            ConnectionService.rollback(connection);
+            throw new RuntimeException("SWW", throwables);
+        } finally {
+            ConnectionService.close(connection);
         }
+        return nickname;
+    }
 
-        public String getNickname() {
-            return nickname;
-        }
+    public static void create(String[] user) {
+        Connection connection = ConnectionService.connect();
+        try {
+            connection.setAutoCommit(false);
+            PreparedStatement statement = connection.prepareStatement("INSERT INTO users (nickname, login, password) VALUES (?, ?, ?)");
 
-        public String getLogin() {
-            return login;
-        }
+            statement.setString(1, user[0]);
+            statement.setString(2, user[1]);
+            statement.setString(3, user[2]);
 
-        public String getPassword() {
-            return password;
+            statement.executeUpdate();
+
+            connection.commit();
+            System.out.println("Check it!");
+
+        } catch (SQLException throwables) {
+            ConnectionService.rollback(connection);
+            throw new RuntimeException("SWW", throwables);
+        } finally {
+            ConnectionService.close(connection);
         }
     }
 }

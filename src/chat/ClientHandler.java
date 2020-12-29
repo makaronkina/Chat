@@ -53,7 +53,6 @@ public class ClientHandler {
                         if (!chat.isNicknameOccupied(maybeNickname)) {
                             sendMessage("[INFO] Auth OK");
                             name = maybeNickname;
-                            chat.broadcastMessage("is logged in", name);
                             chat.subscribe(this);
                             return;
                         } else {
@@ -85,12 +84,16 @@ public class ClientHandler {
         while (true) {
             try {
                 String message = in.readUTF();
+
                 if (message.startsWith("-exit")) {
                     chat.unsubscribe(this);
-                    chat.broadcastMessage(name, message);
                     break;
                 }
-                chat.broadcastMessage(message, name);
+                if(message.startsWith("-change")) {
+                    String[] msg = message.split("\\s");
+                    name = chat.getAuthenticationService().changeNickname(msg[1], msg[2]);
+                    sendMessage("Nickname is changed");
+                } else chat.broadcastMessage(name, message);
             } catch (IOException e) {
                 throw new RuntimeException("SWW", e);
             }
@@ -108,6 +111,6 @@ public class ClientHandler {
                     e.printStackTrace();
                 }
             }
-        }, 25000);
+        }, 120000);
     }
 }

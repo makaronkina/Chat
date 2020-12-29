@@ -3,7 +3,6 @@ package chat;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +34,7 @@ public class ServerChat implements Chat {
     }
 
     @Override
-    public synchronized void broadcastMessage(String message, String sender) {
+    public synchronized void broadcastMessage(String sender, String message) {
         for (ClientHandler client : clients) {
             if (message.startsWith("-pm")) {
                 String[] msg = message.split("\\s",3);
@@ -61,12 +60,14 @@ public class ServerChat implements Chat {
 
     @Override
     public synchronized void subscribe(ClientHandler client) {
+        broadcastMessage(client.getName(), "is logged in");
         clients.add(client);
     }
 
     @Override
     public synchronized void unsubscribe(ClientHandler client) {
         clients.remove(client);
+        broadcastMessage(client.getName(), "is logged out");
     }
 
     @Override
