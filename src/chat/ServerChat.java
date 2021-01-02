@@ -1,5 +1,8 @@
 package chat;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -40,12 +43,27 @@ public class ServerChat implements Chat {
                 String[] msg = message.split("\\s",3);
                 if (msg[1].equals(client.getName())) {
                     client.sendMessage(String.format("[%s]: %s", sender, msg[2]));
+                    doHistory((sender + ": " + message), client.getName());
                     break;
                 }
             } else {
                 client.sendMessage(String.format("[%s]: %s", sender, message));
             }
+            doHistory((sender + ": " + message), client.getName());
         }
+    }
+
+    public void doHistory(String message, String name) {
+
+        File file = new File(name  + "-history.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            writer.write(message);
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            throw new RuntimeException("SWW", e);
+        }
+
     }
 
     @Override
