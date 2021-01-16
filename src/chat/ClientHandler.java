@@ -1,9 +1,9 @@
 package chat;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -53,7 +53,6 @@ public class ClientHandler {
                         if (!chat.isNicknameOccupied(maybeNickname)) {
                             sendMessage("[INFO] Auth OK");
                             name = maybeNickname;
-                            sendHistory(name);
                             chat.subscribe(this);
                             return;
                         } else {
@@ -94,9 +93,7 @@ public class ClientHandler {
                     String[] msg = message.split("\\s");
                     name = chat.getAuthenticationService().changeNickname(msg[1], msg[2]);
                     sendMessage("Nickname is changed");
-                } else {
-                    chat.broadcastMessage(name, message);
-                }
+                } else chat.broadcastMessage(name, message);
             } catch (IOException e) {
                 throw new RuntimeException("SWW", e);
             }
@@ -116,57 +113,4 @@ public class ClientHandler {
             }
         }, 120000);
     }
-
-    public void sendHistory(String name) {
-        File file = new File(name  + "-history.txt");
-        if (file.exists()) {
-            int limit = 3;
-            List<String> list = new ArrayList<>();
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                String message;
-                while ((message = reader.readLine()) != null) {
-                    list.add(message);
-                }
-                if (list.size() > limit) {
-                    for (int i = list.size() - limit; i < list.size(); i++) {
-                        sendMessage(list.get(i));
-                    }
-                } else {
-                    for (int i = 0; i < list.size(); i++) {
-                        sendMessage(list.get(i));
-                    }
-                }
-
-            } catch (IOException e) {
-                throw new RuntimeException("SWW", e);
-            }
-        }
-    }
-
-//    public void sendHistory(String name) {
-//        File file = new File(name  + "-history.txt");
-//        int lineCount = 0;
-//        int lineLimit = 25;
-//        StringBuilder builder = new StringBuilder();
-//        try (RandomAccessFile random = new RandomAccessFile(file, "r")) {
-//            long fileLenght = file.length() - 1;
-//            random.seek(fileLenght);
-//            for (long pointer = fileLenght; pointer >= 0; pointer --) {
-//                random.seek(pointer);
-//                String line;
-//                line = random.readUTF();
-//                if(line == "\n") {
-//                    lineCount++;
-//                    if(lineCount == lineLimit) {
-//                        break;
-//                    }
-//                }
-//                builder.append(line);
-//            }
-//            builder.reverse();
-//            sendMessage(builder.toString());
-//        } catch (IOException e) {
-//            throw new RuntimeException("SWW", e);
-//        }
-//    }
 }
