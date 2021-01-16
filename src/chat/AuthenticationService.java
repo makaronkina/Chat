@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class AuthenticationService {
 
-    protected String findNicknameByLoginAndPassword(String login, String password) {
+    public String findNicknameByLoginAndPassword(String login, String password) {
         Objects.requireNonNull(login, "Login can't be null");
         Objects.requireNonNull(password, "Password can't be null");
 
@@ -71,7 +71,7 @@ public class AuthenticationService {
             statement.executeUpdate();
 
             connection.commit();
-            System.out.println("Check it!");
+//            System.out.println("Check it!");
 
         } catch (SQLException throwables) {
             ConnectionService.rollback(connection);
