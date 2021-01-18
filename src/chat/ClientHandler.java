@@ -16,11 +16,13 @@ public class ClientHandler {
     private DataOutputStream out;
     private Chat chat;
     private Timer timer;
+    private ExecutorService executorService;
 
     public ClientHandler(Socket client, Chat chat) {
         this.client = client;
         this.chat = chat;
         this.timer = new Timer();
+        this.executorService = Executors.newFixedThreadPool(2);
 
         try {
             in = new DataInputStream(client.getInputStream());
@@ -32,7 +34,6 @@ public class ClientHandler {
     }
 
     public void listen() {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
         executorService.execute(new Runnable() {
             @Override
             public void run() {
