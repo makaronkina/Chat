@@ -1,0 +1,3 @@
+Nick2: 12
+Nick2: Привет!
+Masha: is logged out
