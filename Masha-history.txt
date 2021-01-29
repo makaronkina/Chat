@@ -13,3 +13,8 @@ Nick2: Привет!
 Masha: 212345
 Nick2: is logged in
 Nick2: is logged out
+Masha: 1234567890
+Masha: qwertyuiop[]
+Masha: 8754u4jhkh
+Masha: hi
+Masha: 1234567890
